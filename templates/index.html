@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Google Trends Post Suggester</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background: #f7f8fa;
+            color: #222;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 500px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(60,60,60,0.08);
+            padding: 2rem;
+        }
+        h1 {
+            text-align: center;
+            color: #2b5876;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        form {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            justify-content: center;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 0.6rem;
+            border: 1px solid #bdbdbd;
+            border-radius: 5px;
+            font-size: 1rem;
+            background: #f3f6fa;
+        }
+        input[type="submit"] {
+            padding: 0.6rem 1.2rem;
+            background: #2b5876;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: background 0.2s;
+        }
+        input[type="submit"]:hover {
+            background: #4e4376;
+        }
+        h2 {
+            margin-top: 2rem;
+            color: #3261a8;
+            font-size: 1.2rem;
+            border-bottom: 1px solid #f0f1f5;
+            padding-bottom: 0.3rem;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: #f3f6fa;
+            margin: 0.5rem 0;
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(60,60,60,0.03);
+            font-size: 1.05rem;
+        }
+        .mb-1 { margin-bottom: 1rem; }
+        .ml-2 { margin-left: 1.5em; }
+        .hidden { display: none; }
+        .visible { display: block; }
+        .note { font-size: 0.95em; color: #666; margin-top: 0.5rem; }
+        .error-box {
+            background: #ffeaea;
+            color: #a33;
+            padding: 0.8rem 1rem;
+            margin-bottom: 1rem;
+            border-radius: 6px;
+            border: 1px solid #f5c2c7;
+        }
+        .table-wrap { overflow-x: auto; }
+        .trend-table { width: 100%; border-collapse: collapse; }
+        .trend-table th { text-align: left; padding: 8px; border-bottom: 1px solid #eee; }
+        .trend-table td { padding: 8px; border-bottom: 1px solid #f3f3f3; }
+        .chart-canvas { max-width: 100%; margin-top: 1.5rem; }
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+                margin: 16px;
+            }
+            h1 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Google Trends Post Suggester</h1>
+        <form method="post" id="trendForm">
+            <div class="mb-1">
+                <label><input type="radio" name="action" value="trending" {% if selected_action != 'interest' %}checked{% endif %} onchange="toggleForm()"> Trending Now</label>
+                <label class="ml-2"><input type="radio" name="action" value="interest" {% if selected_action == 'interest' %}checked{% endif %} onchange="toggleForm()"> Interest by Region</label>
+            </div>
+            <div id="trendingFields" class="mb-1 {% if selected_action == 'interest' %}hidden{% else %}visible{% endif %}">
+                <select name="trending_region" title="Select region">
+                    <option value="united_states" {% if (request.form.trending_region or 'united_states') == 'united_states' %}selected{% endif %}>United States</option>
+                    <option value="japan" {% if request.form.trending_region == 'japan' %}selected{% endif %}>Japan</option>
+                </select>
+                <input type="submit" value="Show Trending">
+            </div>
+            <div id="interestFields" class="{% if selected_action == 'interest' %}visible{% else %}hidden{% endif %}">
+                <input type="text" name="keywords" placeholder="Keywords (comma separated)" value="{{ request.form.keywords or '' }}">
+                <input type="text" name="country" placeholder="Country code (e.g. IT, US)" value="{{ request.form.country or '' }}" maxlength="2">
+                <input type="submit" value="Get Interest by Region">
+                <div class="note">Enter keywords and a 2-letter country code (e.g. IT for Italy, US for United States).</div>
+            </div>
+            {% if error %}
+            <div class="error-box">{{ error }}</div>
+            {% endif %}
+        </form>
+
+    {% if trending %}
+    <h2>Trending Topics</h2>
+    <ul>
+    {%- for topic in trending %}<li>{{ topic }}</li>{% endfor -%}
+    </ul>
+    <canvas id="trendingChart" class="chart-canvas"></canvas>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="application/json" id="trending-data-json">{{ trending|tojson|safe }}</script>
+    <script>
+    const trendingLabels = JSON.parse(document.getElementById('trending-data-json').textContent);
+    const trendingData = trendingLabels.map(() => 1);
+    if (document.getElementById('trendingChart')) {
+        new Chart(document.getElementById('trendingChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: trendingLabels,
+                datasets: [{
+                    label: 'Trending Topics',
+                    data: trendingData,
+                    backgroundColor: '#2b5876',
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { x: { ticks: { autoSkip: false } } }
+            }
+        });
+    }
+    </script>
+    {% endif %}
+
+    {% if region_table is not none and region_table.values|length > 0 %}
+    {% set first_col = region_table.columns[1] %}
+    <h2>Interest by Region</h2>
+    <div class="table-wrap">
+    <table class="trend-table">
+        <thead>
+            <tr>
+                <th>Region</th>
+                {% for col in region_table.columns[1:] %}
+                <th>{{ col }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in region_table.values %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                {% for val in row[1:] %}
+                <td>{{ val }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    <canvas id="interestChart" class="chart-canvas"></canvas>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="application/json" id="region-labels-json">{{ region_table.values|map(attribute=0)|list|tojson }}</script>
+    <script type="application/json" id="region-data-json">{{ region_table.values|map(attribute=1)|list|tojson }}</script>
+    <script>
+    const regionLabels = JSON.parse(document.getElementById('region-labels-json').textContent);
+    const regionData = JSON.parse(document.getElementById('region-data-json').textContent);
+    if (document.getElementById('interestChart')) {
+        new Chart(document.getElementById('interestChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: regionLabels,
+                datasets: [{
+                    label: '{{ first_col }}',
+                    data: regionData,
+                    backgroundColor: '#3261a8',
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { x: { ticks: { autoSkip: false } } }
+            }
+        });
+    }
+    </script>
+    {% endif %}
+    <script>
+    function toggleForm() {
+        const action = document.querySelector('input[name="action"]:checked').value;
+        document.getElementById('trendingFields').className = 'mb-1 ' + (action === 'trending' ? 'visible' : 'hidden');
+        document.getElementById('interestFields').className = (action === 'interest' ? 'visible' : 'hidden');
+    }
+    </script>
+</body>
+</html>
