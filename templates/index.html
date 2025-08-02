@@ -6,125 +6,191 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body {
-            background: #f7f8fa;
+            background: linear-gradient(120deg, #f7f8fa 0%, #e3e9f7 100%);
             color: #222;
             font-family: 'Segoe UI', Arial, sans-serif;
             margin: 0;
             padding: 0;
         }
+        .header-bar {
+            background: linear-gradient(90deg, #2b5876 0%, #4e4376 100%);
+            color: #fff;
+            padding: 1.2rem 0 1rem 0;
+            text-align: center;
+            font-size: 1.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 8px rgba(60,60,60,0.08);
+        }
         .container {
-            max-width: 500px;
-            margin: 40px auto;
+            max-width: 540px;
+            margin: 40px auto 0 auto;
             background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(60,60,60,0.08);
-            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(60,60,60,0.10);
+            padding: 2.2rem 2rem 2rem 2rem;
         }
         h1 {
-            text-align: center;
-            color: #2b5876;
-            margin-bottom: 1.5rem;
-            font-size: 2rem;
-            font-weight: 700;
+            display: none;
         }
         form {
             display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-            justify-content: center;
+            flex-direction: column;
+            gap: 1.2rem;
+            margin-bottom: 2rem;
         }
-        input[type="text"] {
-            flex: 1;
-            padding: 0.6rem;
+        .form-row {
+            display: flex;
+            gap: 0.7rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        input[type="text"], select {
+            flex: 1 1 120px;
+            padding: 0.7rem 1rem;
             border: 1px solid #bdbdbd;
-            border-radius: 5px;
+            border-radius: 6px;
             font-size: 1rem;
             background: #f3f6fa;
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+        input[type="text"]:focus, select:focus {
+            border: 1.5px solid #2b5876;
+            outline: none;
+            box-shadow: 0 0 0 2px #e3e9f7;
         }
         input[type="submit"] {
-            padding: 0.6rem 1.2rem;
-            background: #2b5876;
+            padding: 0.7rem 1.5rem;
+            background: linear-gradient(90deg, #2b5876 0%, #4e4376 100%);
             color: #fff;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 1.05rem;
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: background 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            transition: background 0.2s, box-shadow 0.2s;
         }
-        input[type="submit"]:hover {
-            background: #4e4376;
+        input[type="submit"]:hover, input[type="submit"]:focus {
+            background: linear-gradient(90deg, #4e4376 0%, #2b5876 100%);
+            box-shadow: 0 4px 16px rgba(60,60,60,0.10);
+        }
+        label {
+            font-size: 1.05rem;
+            color: #2b5876;
+            font-weight: 500;
         }
         h2 {
-            margin-top: 2rem;
+            margin-top: 2.2rem;
             color: #3261a8;
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             border-bottom: 1px solid #f0f1f5;
             padding-bottom: 0.3rem;
+            letter-spacing: 0.5px;
         }
         ul {
             list-style: none;
             padding: 0;
+            margin: 1.2rem 0 0.5rem 0;
         }
         li {
             background: #f3f6fa;
             margin: 0.5rem 0;
-            padding: 0.8rem 1rem;
-            border-radius: 6px;
-            box-shadow: 0 1px 4px rgba(60,60,60,0.03);
-            font-size: 1.05rem;
+            padding: 0.9rem 1.2rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 6px rgba(60,60,60,0.04);
+            font-size: 1.08rem;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        li:hover {
+            background: #e3e9f7;
+            box-shadow: 0 2px 12px rgba(60,60,60,0.08);
         }
         .mb-1 { margin-bottom: 1rem; }
         .ml-2 { margin-left: 1.5em; }
         .hidden { display: none; }
         .visible { display: block; }
-        .note { font-size: 0.95em; color: #666; margin-top: 0.5rem; }
+        .note { font-size: 0.97em; color: #666; margin-top: 0.5rem; }
         .error-box {
             background: #ffeaea;
             color: #a33;
-            padding: 0.8rem 1rem;
-            margin-bottom: 1rem;
-            border-radius: 6px;
+            padding: 0.9rem 1.2rem;
+            margin-bottom: 1.2rem;
+            border-radius: 8px;
             border: 1px solid #f5c2c7;
+            font-size: 1.05rem;
         }
-        .table-wrap { overflow-x: auto; }
-        .trend-table { width: 100%; border-collapse: collapse; }
-        .trend-table th { text-align: left; padding: 8px; border-bottom: 1px solid #eee; }
-        .trend-table td { padding: 8px; border-bottom: 1px solid #f3f3f3; }
-        .chart-canvas { max-width: 100%; margin-top: 1.5rem; }
-        @media (max-width: 600px) {
+        .table-wrap { overflow-x: auto; margin-top: 1.2rem; }
+        .trend-table { width: 100%; border-collapse: collapse; background: #f7f8fa; border-radius: 8px; overflow: hidden; }
+        .trend-table th {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 2px solid #e3e9f7;
+            background: #e3e9f7;
+            color: #2b5876;
+            font-size: 1.07rem;
+        }
+        .trend-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f3f3f3;
+            font-size: 1.05rem;
+        }
+        .trend-table tr:last-child td {
+            border-bottom: none;
+        }
+        .chart-canvas {
+            max-width: 100%;
+            margin-top: 2.2rem;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(60,60,60,0.07);
+            padding: 1.2rem 0.5rem 0.5rem 0.5rem;
+        }
+        @media (max-width: 700px) {
             .container {
-                padding: 1rem;
-                margin: 16px;
+                padding: 1rem 0.5rem;
+                margin: 16px 0 0 0;
             }
-            h1 {
-                font-size: 1.2rem;
+            .header-bar {
+                font-size: 1.1rem;
+                padding: 0.8rem 0 0.7rem 0;
+            }
+        }
+        @media (max-width: 500px) {
+            .container {
+                padding: 0.5rem 0.2rem;
+            }
+            .trend-table th, .trend-table td {
+                padding: 7px 5px;
+                font-size: 0.97rem;
+            }
+            .chart-canvas {
+                padding: 0.5rem 0.1rem 0.1rem 0.1rem;
             }
         }
     </style>
 </head>
 <body>
+    <div class="header-bar">Google Trends Post Suggester</div>
     <div class="container">
-        <h1>Google Trends Post Suggester</h1>
         <form method="post" id="trendForm">
-            <div class="mb-1">
+            <div class="form-row mb-1">
                 <label><input type="radio" name="action" value="trending" {% if selected_action != 'interest' %}checked{% endif %} onchange="toggleForm()"> Trending Now</label>
                 <label class="ml-2"><input type="radio" name="action" value="interest" {% if selected_action == 'interest' %}checked{% endif %} onchange="toggleForm()"> Interest by Region</label>
             </div>
-            <div id="trendingFields" class="mb-1 {% if selected_action == 'interest' %}hidden{% else %}visible{% endif %}">
+            <div id="trendingFields" class="form-row mb-1 {% if selected_action == 'interest' %}hidden{% else %}visible{% endif %}">
                 <select name="trending_region" title="Select region">
                     <option value="united_states" {% if (request.form.trending_region or 'united_states') == 'united_states' %}selected{% endif %}>United States</option>
                     <option value="japan" {% if request.form.trending_region == 'japan' %}selected{% endif %}>Japan</option>
                 </select>
                 <input type="submit" value="Show Trending">
             </div>
-            <div id="interestFields" class="{% if selected_action == 'interest' %}visible{% else %}hidden{% endif %}">
+            <div id="interestFields" class="form-row {% if selected_action == 'interest' %}visible{% else %}hidden{% endif %}">
                 <input type="text" name="keywords" placeholder="Keywords (comma separated)" value="{{ request.form.keywords or '' }}">
                 <input type="text" name="country" placeholder="Country code (e.g. IT, US)" value="{{ request.form.country or '' }}" maxlength="2">
                 <input type="submit" value="Get Interest by Region">
-                <div class="note">Enter keywords and a 2-letter country code (e.g. IT for Italy, US for United States).</div>
             </div>
+            <div class="note">Enter keywords and a 2-letter country code (e.g. IT for Italy, US for United States).</div>
             {% if error %}
             <div class="error-box">{{ error }}</div>
             {% endif %}
